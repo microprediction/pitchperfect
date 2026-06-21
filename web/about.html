@@ -86,9 +86,13 @@ print(v)   # antisymmetrized value in [-1, +1]; +1 favors blue</code></pre>
       simulator, not real match data, so the numbers reflect that game's dynamics — a smooth,
       fully match-calibrated surface still needs game-calibrated simulation, larger training
       sets, and ablations.</li>
-    <li><strong>Possession-aware, not naïve.</strong> A loose ball deep in the opponent half
-      with their defenders around it can read mildly in their favour — that is recovery logic,
-      not a territory bug.</li>
+    <li><strong>Possession-aware, and risk-averse with it.</strong> The model reads contested
+      positions conservatively: a lone attacker with the ball against an intact block reads near
+      0, and a loose ball deep in the opponent half (their defenders nearest) can read mildly in
+      <em>their</em> favour — recovery logic, not a territory bug. Clear the keeper or a defender
+      and the value climbs as the chance becomes real. The flip side is a weak territorial term —
+      "safe possession" is over-valued relative to a contested attack — which is the main thing
+      the upstream training work (a monotonicity prior, game-calibration) is meant to fix.</li>
   </ul>
   <p>Follow along on <a href="https://github.com/microprediction/pitchperfect">GitHub</a>.</p>
   <p><img src="./study/sweep_blue.png" alt="marginal value surface for a blue attacker" style="max-width:100%;border-radius:8px;border:1px solid var(--border)"></p>
