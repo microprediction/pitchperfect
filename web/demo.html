@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>pitchperfect — interactive value function</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='13'>%E2%9A%BD</text></svg>" />
+<link rel="stylesheet" href="./css/style.css" />
+</head>
+<body>
+<header class="nav">
+  <span class="brand"><span class="pp-ball">⚽</span>pitchperfect</span>
+  <nav>
+    <a href="./index.html">Home</a>
+    <a href="./demo.html">Demo</a>
+    <a href="https://humpday.microprediction.org/applications/free-kick.html">Free-kick</a>
+    <a href="https://github.com/microprediction/pitchperfect">GitHub</a>
+  </nav>
+</header>
+
+<main>
+  <h1>Drag the players. Watch the value.</h1>
+  <p class="lede">
+    Every position below is scored by a trained neural-network <em>value function</em>
+    V(s) ∈ [−1, +1] — the model's estimate of who scores next. Drag any player or the
+    ball and the value updates instantly, along with the geometric probes the network
+    keys on (compactness, width, block area, line height…).
+    <span class="badge">runs entirely in your browser</span>
+  </p>
+
+  <div class="demo-wrap">
+    <div class="pitch-box card" style="padding:0.6rem">
+      <canvas id="pitch" aria-label="soccer pitch"></canvas>
+    </div>
+
+    <div class="panel">
+      <div class="card">
+        <label class="field">Blue advantage&nbsp;⟶ next-goal value</label>
+        <div class="meter"><div id="needle" class="needle"></div></div>
+        <div class="vrow"><span style="color:var(--red)">red</span><span>even</span><span style="color:var(--blue)">blue</span></div>
+        <div id="vbig" class="vbig" style="margin-top:0.5rem">—</div>
+      </div>
+
+      <div class="card controls">
+        <label class="field">Mode</label>
+        <div class="seg">
+          <button id="mode-value" class="active">Live value</button>
+          <button id="mode-marginal">Marginal</button>
+        </div>
+        <div id="marginal-help" class="hint" style="display:none">
+          Grab a player — the heatmap shows V if that player stood at each spot
+          (others fixed). The ✚ marks their best position.
+          <div id="selinfo" style="margin-top:0.25rem;color:var(--accent)"></div>
+          <div class="legend" style="margin-top:0.4rem"><span>worse</span><span class="bar"></span><span>better</span></div>
+        </div>
+        <label class="field" style="margin-top:0.4rem">Scenario</label>
+        <select id="preset"></select>
+        <button id="reset" class="btn secondary">Reset scenario</button>
+      </div>
+
+      <div class="card">
+        <label class="field">Shape probes</label>
+        <div id="probes"></div>
+      </div>
+    </div>
+  </div>
+
+  <h2>What am I looking at?</h2>
+  <div class="grid2">
+    <div class="card">
+      <strong>The value function.</strong> A permutation-invariant Deep-Sets +
+      cross-team-attention network (<code>SoccerNetV6</code>), trained to predict
+      which team scores next. <code>V = 2·σ(logit) − 1</code>: +1 means blue is
+      almost certain to score next, −1 means red is.
+    </div>
+    <div class="card">
+      <strong>The probes.</strong> Interpretable formation descriptors — defensive
+      compactness, width, depth, convex-hull area, line height — computed live so you
+      can watch <em>how</em> reshaping a block moves the value, not just that it does.
+    </div>
+  </div>
+  <p class="hint" style="margin-top:1rem">
+    The exact same network runs three ways — PyTorch (training), numpy (the
+    <code>pitchperfect</code> package), and the JavaScript on this page — verified
+    identical to ~1e-6 by the parity test. See
+    <a href="https://humpday.microprediction.org/applications/free-kick.html">the free-kick application</a>
+    for a related value-based study.
+  </p>
+</main>
+
+<footer>
+  pitchperfect · a value-function playground · built on the
+  <a href="https://github.com/score-technologies/value">value</a> network
+</footer>
+
+<script type="module" src="./js/demo.js"></script>
+</body>
+</html>
