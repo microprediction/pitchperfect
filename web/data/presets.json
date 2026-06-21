@@ -1,22 +1,20 @@
 {
   "config": {
-    "model_version": "v6",
+    "name": "MettleNet",
+    "arch": "deepsets-sum",
+    "source_model_version": "v6",
     "hidden": 96,
-    "n_heads": 4,
-    "n_horizons": 3,
-    "n_aux_tasks": 3,
     "n_stack": 1,
-    "n_spatial": 8,
     "sentinel": -2.0,
     "norm": {
       "half_length": 50.0,
       "half_width": 30.0,
       "vel_scale": 30.0
     },
-    "layernorm_eps": 1e-05,
-    "value_formula": "V = 2*sigmoid(outcome_logit) - 1",
-    "source_checkpoint": "outputs/checkpoints/statsbomb_v6/latest.pt",
-    "step": 100000
+    "value_formula": "V = 2*sigmoid(outcome_logit) - 1, antisymmetrized over x-flip+team-swap",
+    "antisymmetrize": true,
+    "source_checkpoint": "outputs/checkpoints/v10/latest.pt",
+    "step": 200000
   },
   "presets": [
     {
@@ -118,7 +116,7 @@
           8
         ]
       ],
-      "v_torch": 0.17850744724273682
+      "v_torch": 0.0
     },
     {
       "name": "Blue attacking third",
@@ -219,7 +217,7 @@
           8
         ]
       ],
-      "v_torch": 0.015386819839477539
+      "v_torch": 0.22878864407539368
     },
     {
       "name": "Counter-attack",
@@ -320,7 +318,310 @@
           0
         ]
       ],
-      "v_torch": -0.0009849071502685547
+      "v_torch": 0.02163657546043396
+    },
+    {
+      "name": "Blue open goal",
+      "description": "Blue striker with the ball at red's net, keeper out of position. Should read strongly blue.",
+      "ball": [
+        48.0,
+        1.0
+      ],
+      "blue": [
+        [
+          -44,
+          0
+        ],
+        [
+          47,
+          -1
+        ],
+        [
+          44,
+          3
+        ],
+        [
+          44,
+          -4
+        ],
+        [
+          30,
+          10
+        ],
+        [
+          30,
+          -10
+        ],
+        [
+          20,
+          0
+        ],
+        [
+          -10,
+          8
+        ],
+        [
+          -10,
+          -8
+        ],
+        [
+          -20,
+          0
+        ],
+        [
+          -5,
+          0
+        ]
+      ],
+      "red": [
+        [
+          25,
+          0
+        ],
+        [
+          40,
+          8
+        ],
+        [
+          40,
+          -8
+        ],
+        [
+          35,
+          0
+        ],
+        [
+          20,
+          12
+        ],
+        [
+          20,
+          -12
+        ],
+        [
+          0,
+          6
+        ],
+        [
+          0,
+          -6
+        ],
+        [
+          -15,
+          0
+        ],
+        [
+          -25,
+          5
+        ],
+        [
+          -25,
+          -5
+        ]
+      ],
+      "v_torch": 0.6583950817584991
+    },
+    {
+      "name": "Red open goal",
+      "description": "Red striker with the ball at blue's net, keeper out of position. Should read strongly red.",
+      "ball": [
+        -48.0,
+        0.0
+      ],
+      "blue": [
+        [
+          -25,
+          0
+        ],
+        [
+          -40,
+          -8
+        ],
+        [
+          -40,
+          8
+        ],
+        [
+          -35,
+          0
+        ],
+        [
+          -20,
+          -12
+        ],
+        [
+          -20,
+          12
+        ],
+        [
+          0,
+          -6
+        ],
+        [
+          0,
+          6
+        ],
+        [
+          15,
+          0
+        ],
+        [
+          25,
+          -5
+        ],
+        [
+          25,
+          5
+        ]
+      ],
+      "red": [
+        [
+          44,
+          0
+        ],
+        [
+          -47,
+          1
+        ],
+        [
+          -44,
+          -3
+        ],
+        [
+          -44,
+          4
+        ],
+        [
+          -30,
+          -10
+        ],
+        [
+          -30,
+          10
+        ],
+        [
+          -20,
+          0
+        ],
+        [
+          10,
+          -8
+        ],
+        [
+          10,
+          8
+        ],
+        [
+          20,
+          0
+        ],
+        [
+          5,
+          0
+        ]
+      ],
+      "v_torch": -0.6686512529850006
+    },
+    {
+      "name": "Blue corner",
+      "description": "Blue corner at red's goal: attackers loading the box, red packed on the line.",
+      "ball": [
+        48.0,
+        27.0
+      ],
+      "blue": [
+        [
+          -46,
+          0
+        ],
+        [
+          48,
+          27
+        ],
+        [
+          44,
+          4
+        ],
+        [
+          45,
+          -2
+        ],
+        [
+          43,
+          8
+        ],
+        [
+          46,
+          0
+        ],
+        [
+          40,
+          -6
+        ],
+        [
+          25,
+          12
+        ],
+        [
+          15,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          -8,
+          0
+        ]
+      ],
+      "red": [
+        [
+          49,
+          0
+        ],
+        [
+          45,
+          3
+        ],
+        [
+          45,
+          -3
+        ],
+        [
+          44,
+          6
+        ],
+        [
+          44,
+          -6
+        ],
+        [
+          43,
+          0
+        ],
+        [
+          46,
+          9
+        ],
+        [
+          46,
+          -9
+        ],
+        [
+          40,
+          0
+        ],
+        [
+          30,
+          0
+        ],
+        [
+          20,
+          0
+        ]
+      ],
+      "v_torch": 0.11328142881393433
     }
   ]
 }

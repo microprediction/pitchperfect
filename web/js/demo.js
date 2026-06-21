@@ -169,7 +169,7 @@ function updateReadout() {
   el("probes").innerHTML = `
     <table class="probe-table">
       <tr><th></th><th class="bl">Blue</th><th class="rd">Red</th></tr>
-      <tr><td>Compactness (stretch)</td><td>${fmt(pb.stretch)}</td><td>${fmt(pr.stretch)}</td></tr>
+      <tr><td>Stretch (spread; low = compact)</td><td>${fmt(pb.stretch)}</td><td>${fmt(pr.stretch)}</td></tr>
       <tr><td>Width</td><td>${fmt(pb.width)}</td><td>${fmt(pr.width)}</td></tr>
       <tr><td>Depth</td><td>${fmt(pb.depth)}</td><td>${fmt(pr.depth)}</td></tr>
       <tr><td>Block area</td><td>${fmt(pb.area,0)}</td><td>${fmt(pr.area,0)}</td></tr>

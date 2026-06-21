@@ -42,20 +42,23 @@ def main():
         f"{model}\n{probes}\n{demo}\n"
     )
 
-    html = read("demo.html")
+    html = read("index.html")          # the demo is the landing page
     html = html.replace(
         '<link rel="stylesheet" href="./css/style.css" />',
         f"<style>\n{css}\n</style>",
     )
-    # neutralize nav links that only exist on the served site
-    html = html.replace('href="./index.html"', 'href="https://github.com/microprediction/pitchperfect"')
+    # point same-site nav links at the hosted site (they don't exist next to a
+    # downloaded single file)
+    SITE = "https://pitchperfect.microprediction.org"
+    html = html.replace('href="./index.html"', f'href="{SITE}/index.html"')
+    html = html.replace('href="./about.html"', f'href="{SITE}/about.html"')
     html = html.replace(
         '<script type="module" src="./js/demo.js"></script>',
         f"<script>\n{script}\n</script>",
     )
     html = html.replace(
-        "<title>pitchperfect — interactive value function</title>",
-        "<title>pitchperfect — interactive value function (standalone)</title>",
+        "<title>pitchperfect — interactive soccer value function</title>",
+        "<title>pitchperfect — interactive soccer value function (standalone)</title>",
     )
 
     out = os.path.join(WEB, "standalone.html")

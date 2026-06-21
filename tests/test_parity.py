@@ -38,6 +38,7 @@ def _numpy_outputs(refs):
     for c in refs:
         s = c["state"]
         out.append({"logit": net.logit(s["ball"], s["blue"], s["red"]),
+                    "v_raw": net.value_raw(s["ball"], s["blue"], s["red"]),
                     "v": net.value(s["ball"], s["blue"], s["red"])})
     return out
 
@@ -60,6 +61,7 @@ def test_numpy_matches_torch():
     npy = _numpy_outputs(refs)
     for ref, got in zip(refs, npy):
         assert abs(got["logit"] - ref["logit"]) < TORCH_TOL, (got, ref)
+        assert abs(got["v_raw"] - ref["v_raw"]) < TORCH_TOL
         assert abs(got["v"] - ref["v"]) < TORCH_TOL
 
 
@@ -71,6 +73,7 @@ def test_js_matches_numpy_and_torch():
     for ref, n, j in zip(refs, npy, js):
         assert abs(j["logit"] - n["logit"]) < JS_TOL, ("js vs numpy", j, n)
         assert abs(j["logit"] - ref["logit"]) < TORCH_TOL, ("js vs torch", j, ref)
+        assert abs(j["v"] - n["v"]) < JS_TOL, ("antisym js vs numpy", j, n)
         assert abs(j["v"] - ref["v"]) < TORCH_TOL
 
 

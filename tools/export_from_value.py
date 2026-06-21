@@ -109,6 +109,39 @@ def build_presets() -> list[dict]:
         "red": red,
     })
 
+    # 4. Blue open goal — striker through on a stranded keeper at red's net.
+    presets.append({
+        "name": "Blue open goal",
+        "description": "Blue striker with the ball at red's net, keeper out of position. Should read strongly blue.",
+        "ball": [48.0, 1.0],
+        "blue": [(-44, 0), (47, -1), (44, 3), (44, -4), (30, 10),
+                 (30, -10), (20, 0), (-10, 8), (-10, -8), (-20, 0), (-5, 0)],
+        "red": [(25, 0), (40, 8), (40, -8), (35, 0), (20, 12),
+                (20, -12), (0, 6), (0, -6), (-15, 0), (-25, 5), (-25, -5)],
+    })
+
+    # 5. Red open goal — the mirror image; should read strongly red.
+    presets.append({
+        "name": "Red open goal",
+        "description": "Red striker with the ball at blue's net, keeper out of position. Should read strongly red.",
+        "ball": [-48.0, 0.0],
+        "blue": [(-25, 0), (-40, -8), (-40, 8), (-35, 0), (-20, -12),
+                 (-20, 12), (0, -6), (0, 6), (15, 0), (25, -5), (25, 5)],
+        "red": [(44, 0), (-47, 1), (-44, -3), (-44, 4), (-30, -10),
+                (-30, 10), (-20, 0), (10, -8), (10, 8), (20, 0), (5, 0)],
+    })
+
+    # 6. Attacking corner — blue swings one in from red's right corner.
+    presets.append({
+        "name": "Blue corner",
+        "description": "Blue corner at red's goal: attackers loading the box, red packed on the line.",
+        "ball": [48.0, 27.0],
+        "blue": [(-46, 0), (48, 27), (44, 4), (45, -2), (43, 8),
+                 (46, 0), (40, -6), (25, 12), (15, 0), (0, 0), (-8, 0)],
+        "red": [(49, 0), (45, 3), (45, -3), (44, 6), (44, -6),
+                (43, 0), (46, 9), (46, -9), (40, 0), (30, 0), (20, 0)],
+    })
+
     return presets
 
 
@@ -149,7 +182,7 @@ def state_to_inputs(state: dict, L: float, W: float, vel_scale: float):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--ckpt", default="outputs/checkpoints/statsbomb_v6/latest.pt")
+    ap.add_argument("--ckpt", default="outputs/checkpoints/v10/latest.pt")
     ap.add_argument("--out", required=True, help="output data directory")
     args = ap.parse_args()
 
@@ -170,24 +203,22 @@ def main():
     model.eval()
 
     sd = model.state_dict()
-    # The value head (head_outcome) is all we need for V; drop the future-ball
-    # and auxiliary-task heads to keep the download small.
-    skip = ("head_future.", "head_aux.")
+    # The value head (head_outcome) is all we need for V; drop the future-ball,
+    # auxiliary-task and (if present) xg heads to keep the download small.
+    skip = ("head_future.", "head_aux.", "head_xg.")
     tensors = {name: tensor_to_json(t) for name, t in sd.items()
                if not name.startswith(skip)}
 
     config = {
-        "model_version": model_version,
+        "name": "MettleNet",
+        "arch": "deepsets-sum",          # per-player MLP + sum-pool per team
+        "source_model_version": str(model_version),
         "hidden": 96,
-        "n_heads": 4,
-        "n_horizons": 3,
-        "n_aux_tasks": 3,
         "n_stack": 1,
-        "n_spatial": 8,
         "sentinel": -2.0,
         "norm": {"half_length": L, "half_width": W, "vel_scale": vel_scale},
-        "layernorm_eps": 1e-5,
-        "value_formula": "V = 2*sigmoid(outcome_logit) - 1",
+        "value_formula": "V = 2*sigmoid(outcome_logit) - 1, antisymmetrized over x-flip+team-swap",
+        "antisymmetrize": True,
         "source_checkpoint": os.path.relpath(ckpt, repo),
         "step": int(blob.get("step", -1)),
     }
@@ -207,17 +238,32 @@ def main():
     write_all("weights.json", {"config": config, "tensors": tensors})
     print(f"wrote weights.json ({len(tensors)} tensors) -> {out_dirs}")
 
-    # Reference cases for the parity test.
+    def swap_state(st):
+        """swap(s): flip x (positions) and swap the two teams. (vel = 0 here)"""
+        return {
+            "ball": [-st["ball"][0], st["ball"][1]],
+            "blue": [[-x, y] for x, y in st["red"]],
+            "red": [[-x, y] for x, y in st["blue"]],
+        }
+
+    def raw_v(st):
+        bt, blt, rt = state_to_inputs(st, L, W, vel_scale)
+        return float(value_from_logit(model(bt, blt, rt)[0]).item())
+
+    def antisym_v(st):
+        return 0.5 * (raw_v(st) - raw_v(swap_state(st)))
+
+    # Reference cases for the parity test (both raw and antisymmetrized).
     refs = []
     with torch.no_grad():
         for st in build_test_states():
             bt, blt, rt = state_to_inputs(st, L, W, vel_scale)
             logit = model(bt, blt, rt)[0]
-            v = value_from_logit(logit)
             refs.append({
                 "state": st,
                 "logit": float(logit.item()),
-                "v": float(v.item()),
+                "v_raw": float(value_from_logit(logit).item()),
+                "v": antisym_v(st),
             })
     write_all("refs.json", {"config": config, "cases": refs}, indent=2)
     print(f"wrote refs.json ({len(refs)} cases)")
@@ -226,8 +272,7 @@ def main():
     presets = build_presets()
     with torch.no_grad():
         for p in presets:
-            bt, blt, rt = state_to_inputs(p, L, W, vel_scale)
-            p["v_torch"] = float(value_from_logit(model(bt, blt, rt)[0]).item())
+            p["v_torch"] = antisym_v(p)   # antisymmetrized, matches the demo
     write_all("presets.json", {"config": config, "presets": presets}, indent=2)
     print(f"wrote presets.json ({len(presets)} presets)")
 

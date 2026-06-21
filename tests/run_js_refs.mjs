@@ -13,6 +13,10 @@ const refs = JSON.parse(readFileSync(join(data, "refs.json"), "utf8"));
 const net = new ValueNet(weights);
 const out = refs.cases.map((c) => {
   const s = c.state;
-  return { logit: net.logit(s.ball, s.blue, s.red), v: net.value(s.ball, s.blue, s.red) };
+  return {
+    logit: net.logit(s.ball, s.blue, s.red),
+    v_raw: net.valueRaw(s.ball, s.blue, s.red),
+    v: net.value(s.ball, s.blue, s.red),
+  };
 });
 process.stdout.write(JSON.stringify(out));

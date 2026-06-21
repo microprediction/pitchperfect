@@ -54,7 +54,7 @@ async function waitFor(pred, ms = 8000) {
 await waitFor(() => elements.vbig.innerHTML.includes("blue next-goal"));
 if (elements.vbig.textContent === "load error") throw new Error("demo failed to boot");
 console.log("boot ok    vbig:", elements.vbig.innerHTML.replace(/<[^>]+>/g, " ").trim());
-console.log("probes ok :", elements.probes.innerHTML.includes("Compactness"));
+console.log("probes ok :", elements.probes.innerHTML.includes("Stretch"));
 
 // switch to marginal mode and simulate grabbing + releasing a player
 elements["mode-marginal"].onclick();

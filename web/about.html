@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>pitchperfect — about</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='13'>%E2%9A%BD</text></svg>" />
+<link rel="stylesheet" href="./css/style.css" />
+</head>
+<body>
+<header class="nav">
+  <span class="brand"><a href="./index.html"><span class="pp-ball">⚽</span>pitchperfect</a></span>
+  <nav>
+    <a href="./index.html">Demo</a>
+    <a href="./about.html">About</a>
+    <a href="https://mettledata.ai/">Mettle Data</a>
+    <a href="https://humpday.microprediction.org/applications/free-kick.html">Free-kick</a>
+    <a href="https://github.com/microprediction/pitchperfect">GitHub</a>
+  </nav>
+</header>
+
+<main>
+  <h1>A soccer value function you can touch.</h1>
+  <p class="lede">
+    <strong>pitchperfect</strong> ports a trained neural-network value function for
+    football — V(s), the estimate of which team scores next — into a tiny numpy package
+    and an interactive browser demo. Drag 22 players around a real pitch and watch the
+    model reason about danger in real time.
+  </p>
+  <p>
+    <a class="btn" href="./index.html">Open the interactive demo →</a>
+    <a class="btn secondary" href="https://github.com/microprediction/pitchperfect">View on GitHub</a>
+  </p>
+
+  <h2 id="how">How it works</h2>
+  <div class="grid2">
+    <div class="card">
+      <strong>One network, three runtimes.</strong> The model is trained in PyTorch in
+      the <a href="https://github.com/score-technologies/value">value</a> repo. We export
+      its weights once; <code>pitchperfect</code> reimplements the forward pass in
+      <strong>numpy</strong> (the pip package) and in <strong>JavaScript</strong> (the
+      demo). A parity test proves all three agree to ~1e-6.
+    </div>
+    <div class="card">
+      <strong>MettleNet — Deep Sets.</strong> A per-player encoder summed over each team
+      (permutation invariant), feeding a value head. It generalizes naturally beyond
+      soccer to any spatial team sport.
+    </div>
+    <div class="card">
+      <strong>Enforced symmetry.</strong> The raw value is <em>antisymmetrized</em> over
+      the x-flip + team-swap symmetry: <code>V(s) = (raw(s) − raw(swap s))/2</code>. This
+      removes any residual red/blue bias and guarantees a mirror-balanced position scores
+      exactly 0 — the principled fix for an asymmetric trained model.
+    </div>
+    <div class="card">
+      <strong>Probe what it knows.</strong> The demo computes interpretable formation
+      metrics live — stretch (spread; low = compact), width, depth, block area, line
+      height — so you can connect a shape change to a value change, and pick any player to
+      sweep their <em>marginal value surface</em> across the pitch.
+    </div>
+  </div>
+
+  <h2 id="install">Install</h2>
+  <pre><code>pip install pitchperfect
+
+from pitchperfect import ValueNet
+net = ValueNet.load()
+v = net.value(
+    ball=[0, 0],
+    blue=[[-46,0],[-30,-18], ...],   # 11 [x,y] in sim coords (x∈[-50,50], y∈[-30,30])
+    red=[[46,0],[30,18], ...],
+)
+print(v)   # antisymmetrized value in [-1, +1]; +1 favors blue</code></pre>
+
+  <h2>Status &amp; roadmap</h2>
+  <p>
+    The value function is a work in progress. Enforcing the game symmetries makes it
+    well-behaved on clear-cut positions (an open goal for red reads strongly red; a
+    balanced shape reads zero), but a fully smooth, reliable surface will need
+    game-calibrated simulations, much larger training sets, and ablations. Follow along
+    on <a href="https://github.com/microprediction/pitchperfect">GitHub</a>.
+  </p>
+
+  <h2>Why now</h2>
+  <p>
+    The World Cup is on — so here's something to play with at half-time. Recreate a
+    famous shape, drag a striker into the channel, and see what a value function thinks.
+  </p>
+</main>
+
+<footer>
+  pitchperfect · value functions for football (and beyond) · In conjunction with
+  <a href="https://mettledata.ai/">Mettle Data</a>
+</footer>
+</body>
+</html>
