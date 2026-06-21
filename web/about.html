@@ -13,6 +13,7 @@
   <nav>
     <a href="./index.html">Demo</a>
     <a href="./about.html">About</a>
+    <a href="./papers.html">Papers</a>
     <a href="https://mettledata.ai/">Mettle Data</a>
     <a href="https://humpday.microprediction.org/applications/free-kick.html">Free-kick</a>
     <a href="https://github.com/microprediction/pitchperfect">GitHub</a>
@@ -72,14 +73,27 @@ v = net.value(
 )
 print(v)   # antisymmetrized value in [-1, +1]; +1 favors blue</code></pre>
 
-  <h2>Status &amp; roadmap</h2>
+  <h2>Status &amp; limits</h2>
   <p>
-    The value function is a work in progress. Enforcing the game symmetries makes it
-    well-behaved on clear-cut positions (an open goal for red reads strongly red; a
-    balanced shape reads zero), but a fully smooth, reliable surface will need
-    game-calibrated simulations, much larger training sets, and ablations. Follow along
-    on <a href="https://github.com/microprediction/pitchperfect">GitHub</a>.
+    A battery of diagnostics (<code>tools/study.py</code>) checks the value surface against
+    common sense, and the model passes the clear-cut tests: an open goal reads ±0.66 to the
+    attacking side, a balanced shape reads exactly 0, numerical overloads favour the
+    overloading team, and every mirror position is the precise negative of its twin.
   </p>
+  <p>Known limits, since this is a research preview:</p>
+  <ul>
+    <li><strong>Simulator-trained.</strong> The weights come from a symmetric 11-v-11
+      simulator, not real match data, so the numbers reflect that game's dynamics — a smooth,
+      fully match-calibrated surface still needs game-calibrated simulation, larger training
+      sets, and ablations.</li>
+    <li><strong>Possession-aware, not naïve.</strong> A loose ball deep in the opponent half
+      with their defenders around it can read mildly in their favour — that is recovery logic,
+      not a territory bug.</li>
+  </ul>
+  <p>Follow along on <a href="https://github.com/microprediction/pitchperfect">GitHub</a>.</p>
+  <p><img src="./study/sweep_blue.png" alt="marginal value surface for a blue attacker" style="max-width:100%;border-radius:8px;border:1px solid var(--border)"></p>
+  <p class="hint">Above: the marginal value as a blue attacker (with the ball) is moved over
+    the pitch, others fixed — bluer where the model rates that position higher for blue.</p>
 
   <h2>Why now</h2>
   <p>

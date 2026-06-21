@@ -106,6 +106,13 @@ class ValueNet:
         rt = np.array([[norm(p) for p in red]], dtype=np.float64)
         return bt, blt, rt
 
+    def logit(self, ball, blue, red) -> float:
+        return float(self.forward(*self._state_to_inputs(ball, blue, red))[0])
+
+    def value_raw(self, ball, blue, red) -> float:
+        """Raw signed value in [-1, +1] (no symmetrization)."""
+        return float(2.0 * _sigmoid(self.forward(*self._state_to_inputs(ball, blue, red))[0]) - 1.0)
+
     @staticmethod
     def _swap(ball, blue, red):
         """swap(s): flip x (positions + x-velocity) and swap the two teams."""
@@ -114,16 +121,12 @@ class ValueNet:
             return [-q[0], q[1], -q[2], q[3]]
         return fx(ball), [fx(p) for p in red], [fx(p) for p in blue]
 
-    def logit(self, ball, blue, red) -> float:
-        return float(self.forward(*self._state_to_inputs(ball, blue, red))[0])
-
-    def value_raw(self, ball, blue, red) -> float:
-        """Raw signed value in [-1, +1] (no antisymmetrization)."""
-        return float(2.0 * _sigmoid(self.forward(*self._state_to_inputs(ball, blue, red))[0]) - 1.0)
-
     def value(self, ball: Sequence, blue: Sequence, red: Sequence) -> float:
         """Antisymmetrized signed value in [-1, +1]; +1 favors blue (the +x
-        attacker). A mirror-symmetric position reads exactly 0."""
+        attacker). V(s) = (raw(s) - raw(swap s))/2, so V(s) = -V(swap s) exactly
+        and a mirror-balanced position reads 0. This corrects the model's
+        position-dependent red/blue asymmetry at every point (a single additive
+        bias cannot)."""
         v = self.value_raw(ball, blue, red)
         vs = self.value_raw(*self._swap(ball, blue, red))
         return 0.5 * (v - vs)

@@ -103,7 +103,9 @@ export class ValueNet {
     return { ball: fx(ball), blue: red.map(fx), red: blue.map(fx) };
   }
 
-  // Antisymmetrized value in [-1, +1]; +1 favors blue. Mirror-symmetric -> 0.
+  // Antisymmetrized value in [-1, +1]; +1 favors blue. V(s) = (raw(s) -
+  // raw(swap s))/2, so V(s) = -V(swap s) exactly and a balanced position reads
+  // 0. Corrects the position-dependent red/blue asymmetry everywhere.
   value(ball, blue, red) {
     const v = this.valueRaw(ball, blue, red);
     const s = ValueNet.swap(ball, blue, red);

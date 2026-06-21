@@ -217,7 +217,7 @@ def main():
         "n_stack": 1,
         "sentinel": -2.0,
         "norm": {"half_length": L, "half_width": W, "vel_scale": vel_scale},
-        "value_formula": "V = 2*sigmoid(outcome_logit) - 1, antisymmetrized over x-flip+team-swap",
+        "value_formula": "V = (raw(s) - raw(swap s))/2,  raw = 2*sigmoid(logit)-1",
         "antisymmetrize": True,
         "source_checkpoint": os.path.relpath(ckpt, repo),
         "step": int(blob.get("step", -1)),
@@ -238,22 +238,21 @@ def main():
     write_all("weights.json", {"config": config, "tensors": tensors})
     print(f"wrote weights.json ({len(tensors)} tensors) -> {out_dirs}")
 
-    def swap_state(st):
-        """swap(s): flip x (positions) and swap the two teams. (vel = 0 here)"""
-        return {
-            "ball": [-st["ball"][0], st["ball"][1]],
-            "blue": [[-x, y] for x, y in st["red"]],
-            "red": [[-x, y] for x, y in st["blue"]],
-        }
-
+    @torch.no_grad()
     def raw_v(st):
         bt, blt, rt = state_to_inputs(st, L, W, vel_scale)
         return float(value_from_logit(model(bt, blt, rt)[0]).item())
 
+    def swap_state(st):
+        """swap(s): flip x (positions) and swap the two teams. (vel = 0 here)"""
+        return {"ball": [-st["ball"][0], st["ball"][1]],
+                "blue": [[-x, y] for x, y in st["red"]],
+                "red": [[-x, y] for x, y in st["blue"]]}
+
     def antisym_v(st):
         return 0.5 * (raw_v(st) - raw_v(swap_state(st)))
 
-    # Reference cases for the parity test (both raw and antisymmetrized).
+    # Reference cases for the parity test (raw and antisymmetrized).
     refs = []
     with torch.no_grad():
         for st in build_test_states():

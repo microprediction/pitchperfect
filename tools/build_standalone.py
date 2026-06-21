@@ -52,6 +52,7 @@ def main():
     SITE = "https://pitchperfect.microprediction.org"
     html = html.replace('href="./index.html"', f'href="{SITE}/index.html"')
     html = html.replace('href="./about.html"', f'href="{SITE}/about.html"')
+    html = html.replace('href="./papers.html"', f'href="{SITE}/papers.html"')
     html = html.replace(
         '<script type="module" src="./js/demo.js"></script>',
         f"<script>\n{script}\n</script>",

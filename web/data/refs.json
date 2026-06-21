@@ -11,7 +11,7 @@
       "half_width": 30.0,
       "vel_scale": 30.0
     },
-    "value_formula": "V = 2*sigmoid(outcome_logit) - 1, antisymmetrized over x-flip+team-swap",
+    "value_formula": "V = (raw(s) - raw(swap s))/2,  raw = 2*sigmoid(logit)-1",
     "antisymmetrize": true,
     "source_checkpoint": "outputs/checkpoints/v10/latest.pt",
     "step": 200000
