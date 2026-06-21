@@ -42,16 +42,25 @@ print(v)   # signed value in [-1, +1]; +1 favors blue
 
 ## The model
 
-The network is `SoccerNetV6` from the [`value`](https://github.com/score-technologies/value)
-repo (the StatsBomb-trained checkpoint):
+**MettleNet** is a *small demo network* — a Deep-Sets value net taken from the
+[`value`](https://github.com/score-technologies/value) repo's `v10` simulator checkpoint:
 
-- **Deep Sets** per-player encoder — permutation invariant within a team.
-- **Cross-team attention** — the ball and all 22 players attend to each other.
-- **Masked pooling** per team, then a value head: `V = 2·σ(logit) − 1`.
+- **Deep Sets** — a per-player MLP encoder, **summed** over each team (permutation
+  invariant within a team). No attention, no hand-built features; just positions.
+- **Value head** on `concat[ball, blue_sum, red_sum]`: `raw = 2·σ(logit) − 1`.
+- **Antisymmetrized**: `V(s) = (raw(s) − raw(swap s)) / 2`, where `swap` flips the pitch
+  in x and swaps the teams. So `V(s) = −V(swap s)` exactly and a mirror-balanced position
+  reads 0 — enforced at inference, which corrects the trained net's position-dependent
+  red/blue asymmetry (a single additive bias cannot).
 
-It is fed normalized positions (and velocities, zero in the static demo) plus eight
-relational features per player. Because it is set-based, it naturally generalizes to
-other team sports and to any number of players.
+Because it is set-based it generalizes to any number of players and other team sports.
+
+> **Research preview.** It's trained on a *symmetric simulator*, not real matches. It gets
+> clear-cut positions right (open goal ±0.66, balanced 0, overloads favour the overload),
+> but is **possession-aware and risk-averse**: a lone attacker against an intact block reads
+> near 0, and "safe possession" is over-valued versus a contested attack. Clear a keeper or
+> defender and the value climbs. A smoother, match-grade surface needs upstream work
+> (a monotonicity prior, game-calibration, larger training sets).
 
 ## The probes
 
@@ -61,7 +70,7 @@ e.g. compress a defensive block and watch the attacker's value fall:
 
 | probe | meaning |
 |---|---|
-| compactness (stretch) | mean distance of outfielders to their centroid |
+| stretch (low = compact) | mean distance of outfielders to their centroid |
 | width / depth | lateral / longitudinal extent of the block |
 | block area | convex-hull area of the outfield ten |
 | line height | how far up-pitch the back unit holds |
@@ -90,7 +99,7 @@ Re-export the weights from a checkpoint in the sibling `value` repo:
 ```bash
 cd ../value
 .venv/bin/python ../pitchperfect/tools/export_from_value.py \
-    --ckpt outputs/checkpoints/statsbomb_v6/latest.pt \
+    --ckpt outputs/checkpoints/v10/latest.pt \
     --out  ../pitchperfect/pitchperfect/data
 ```
 

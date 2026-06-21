@@ -1,23 +1,24 @@
-"""Export the trained SoccerNetV6 value network from the `value` repo into a
+"""Export the small demo value network (MettleNet) from the `value` repo into a
 self-contained weights.json that pitchperfect (numpy + JS) can load.
 
-Run this with the `value` repo's virtualenv, e.g.:
+Defaults to the `v10` simulator checkpoint -- a Deep-Sets sum-pool net. Run with
+the `value` repo's virtualenv, e.g.:
 
     cd ../value
     .venv/bin/python ../pitchperfect/tools/export_from_value.py \
-        --ckpt outputs/checkpoints/statsbomb_v6/latest.pt \
+        --ckpt outputs/checkpoints/v10/latest.pt \
         --out  ../pitchperfect/pitchperfect/data
 
-It writes three files into --out:
+It writes three files into --out (and a copy under web/data):
 
-  weights.json   all model tensors (flat float lists + shapes) + config
-  refs.json      reference (state -> logit, V) cases computed by torch, used by
-                 the parity test to prove the numpy/JS ports match the original
+  weights.json   model tensors (flat float lists + shapes) + config
+  refs.json      reference (state -> logit, raw V, antisym V) cases from torch,
+                 used by the parity test to prove the numpy/JS ports match
   presets.json   a few realistic 11v11 field states for the interactive demos
 
 Velocities are exported/handled as zero throughout: the demos are static
-"drag the players" scenes, which is exactly what a StatsBomb-trained freeze
-frame model expects.
+"drag the players" scenes. The exported value is antisymmetrized at inference
+(see config.antisymmetrize) so a mirror-balanced position reads 0.
 """
 from __future__ import annotations
 
